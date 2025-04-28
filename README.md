@@ -12,9 +12,9 @@ conda env update -f environment.yml --prune
 
 ## run code
 ```bash
-python run.py --data {}
+python run.py --data {} --batch_size {}
 
-python -m src.main --data data/sample_data.csv```
+python -m src.main --data data/sample_data.csv``` --batch_size 10
 
 ```
 
@@ -30,13 +30,27 @@ python -m src.main --data data/sample_data.csv```
 
 ## prompt
 ```bash
-You are a data annotator. Given a dataset, you need to annotate the dataset with the following labels:
+You are a data annotator.
 
-yes: the text is about a restaurant
-no: the text is not about a restaurant
+You will be given {batch_size} data points as strings.
+For each string, classify it with ONLY one label: '{positive_label}' or '{negative_label}'.
 
-Please annotate the dataset below:
+Examples:
+- Cafe → {positive_label}
+- Restaurant → {negative_label}
+- Hotel → {negative_label}
+- Shisha Cafe → {negative_label}
+- Bakery → {positive_label}
+- Fast Food → {negative_label}
+
+REPLY WITH EXACTLY {batch_size} LINES, ONE ANSWER PER LINE.
+Only output '{positive_label}' or '{negative_label}' for each row, in the same order.
+NO numbers.
+NO extra text.
 ```
+
+default: `batch_size=10, positive_label="yes", negative_label="no"`
+
 
 ## output schema
 
