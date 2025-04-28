@@ -1,0 +1,30 @@
+
+role_context_prompt: "You are situated in Saudi Arabia and an expert in the local dialect and foods."
+
+positive_label: "yes"
+positive_label_desc_prompt: "Groceries, restaurants etc."
+
+negative_label: "no"
+negative_label_desc_prompt: "Hotels, Malls, Schools etc."
+
+examples_prompt: "Al Riyadh Highschool  → no \n Al Hamra Grocery → yes \n City Mall → no\n"
+
+
+dataset_path: "data/sample_data.csv" # override with CLI arg: --data
+id_column: "id"
+text_column: "text"
+ai_label_column: "ai_label"
+
+batch_size: 50 # override with CLI arg: --batch_size
+rows_to_label: 100 ## optional, if not specified, all rows will be labeled
+
+
+llm_config:
+  timeout: 60
+  seed: 42
+  model: deepseek-chat
+  base_url: https://api.deepseek.com
+  price:
+    - 0.00027
+    - 0.00110
+

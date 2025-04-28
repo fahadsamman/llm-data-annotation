@@ -5,7 +5,6 @@ from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 from dotenv import load_dotenv
 import yaml
 
-
 from src.data_loader import load_and_validate_data, DataLoaderError
 from src.batch_agent import HeadlessBatchAgent
 
@@ -15,22 +14,26 @@ def load_config(path="config.yml"):
     with open(path, "r") as f:
         return yaml.safe_load(f)
     
-def generate_system_prompt(batch_size, positive_label, negative_label):
+def generate_system_prompt(
+        batch_size, positive_label, negative_label, 
+        role_context_prompt,
+        examples_prompt,
+        positive_label_desc_prompt,
+        negative_label_desc_prompt
+        ):
     
     return f"""
-You are a data annotator.
+You are a data annotator. {role_context_prompt}
 
 You will be given {batch_size} data points as strings.
 
 For each string, classify it with ONLY one label: '{positive_label}' or '{negative_label}'.
 
-Examples:
-- Cafe → {positive_label}
-- Restaurant → {negative_label}
-- Hotel → {negative_label}
-- Shisha Cafe → {negative_label}
-- Bakery → {positive_label}
-- Fast Food → {negative_label}
+{positive_label}: {positive_label_desc_prompt}
+{negative_label}: {negative_label_desc_prompt}
+
+Examples: {examples_prompt}
+
 
 REPLY WITH EXACTLY {batch_size} LINES, ONE ANSWER PER LINE.
 Only output '{positive_label}' or '{negative_label}' for each row, in the same order.
@@ -93,16 +96,18 @@ def main():
         ]
     }
 
-    positive_label = config.get("positive_label")
-    negative_label = config.get("negative_label")
+    #positive_label = config.get("positive_label")
+    #negative_label = config.get("negative_label")
     text_column = config["text_column"] if "text_column" in config else "text"
     id_column = config["id_column"] if "id_column" in config else "id"
     validation_column = config["validation_column"] if "validation_column" in config else None
 
     if args.batch_size is None:
         batch_size = config["batch_size"]
-    else:
+    elif args.batch_size is not None:
         batch_size = args.batch_size
+    else:
+        raise ValueError("No batch size specified in config or CLI args.")
 
     ## get dataset path from config file but allow CLI override:
     if args.data is None:
@@ -118,13 +123,15 @@ def main():
     except KeyError:
         rows_to_label = None
 
-    #results_dir = config["defaults"]["results_dir"]
-    #base_filename = config["defaults"]["base_filename"]
 
     system_prompt = generate_system_prompt(
         batch_size=batch_size, 
-        positive_label=positive_label, 
-        negative_label=negative_label
+        positive_label= config.get("positive_label"),
+        negative_label=config.get("negative_label"),
+        role_context_prompt=config.get("role_context_prompt"),
+        examples_prompt=config.get("examples_prompt"),
+        positive_label_desc_prompt=config.get("positive_label_desc_prompt"),
+        negative_label_desc_prompt=config.get("negative_label_desc_prompt")
         )
     
     print("✅ Config loaded successfully.")
