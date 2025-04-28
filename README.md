@@ -9,8 +9,11 @@ conda env create -f environment.yml
 conda env update -f environment.yml --prune
 
 ```
+## Required Configs
+* Rename the sample_config.yml to config.yml and fill in custom values.
+* Set API_KEY as an environment variable.
 
-## run code
+## Run
 ```bash
 python run.py --data {} --batch_size {}
 

@@ -24,6 +24,7 @@ class HeadlessBatchAgent(UserProxyAgent):
 
     def run_batches(self, assistant):
         while True:
+            print(f"⏳ Fetching batch {self.current_index} to {self.current_index + self.batch_size}")
             batch_df = self.fetch_next_batch()
             if batch_df is None:
                 break
