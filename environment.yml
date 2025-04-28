@@ -6,11 +6,12 @@ dependencies:
   - python=3.12
   - pip
   - pip:
-      - pyautogen==0.2.*
-      - openai>=1.0.0
-      - tiktoken>=0.5.0
-      - requests>=2.31.0
-      - python-dotenv>=1.0.0
-      - pydantic>=2.0
-      - pandas>=2.0.0
-      - flaml>=2.1.0  # <-- just basic flaml, no [automl]
+      - pyautogen==0.2.35
+      - openai==1.76.0
+      - tiktoken==0.9.0
+      - pandas==2.2.3
+      - python-dotenv==1.1.0
+      - flaml==2.3.4 # <-- just basic flaml, no [automl]
+      - scikit-learn==1.6.1
+      - numpy==1.26.4
+      - tqdm==4.67.1

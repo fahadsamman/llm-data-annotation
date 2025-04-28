@@ -60,7 +60,7 @@ default: `batch_size=10, positive_label="yes", negative_label="no"`
 |  2  | hotel al-naseem   |  no       |
 |  3  | sami's bakery     |  yes      |
 |  4  | burgers and fries |  no       |
-
+|  5  | shisha and cafe   |  no       |
 
 
 
