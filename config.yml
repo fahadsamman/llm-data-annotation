@@ -3,6 +3,12 @@ positive_label: "yes"
 negative_label: "no"
 batch_size: 10
 dataset_path: "data/sample_data.csv"
+#dataset_path: "/Users/Barakah/Downloads/google_maps_scraped_cleaned_28_04_2025 - main.csv"
+id_column: "id"
+text_column: "text"
+#human_label_column: "human_label"  
+ai_label_column: "ai_label"
+
 rows_to_label: 10 ## optional, if not specified, all rows will be labeled
 
 #results_dir: results

@@ -38,7 +38,7 @@ NO numbers.
 NO extra text.
 """.strip()
 
-def save_results(df, base_filename="annotated_data"):
+def save_results(df, prefix="annotated_data"):
     """Save dataframe to results/ folder with a datetime-stamped filename."""
 
     # Create results folder if it doesn't exist
@@ -49,7 +49,7 @@ def save_results(df, base_filename="annotated_data"):
     timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
 
     # Build output filename
-    output_filename = f"{base_filename}_{timestamp}.csv"
+    output_filename = f"{prefix}_{timestamp}.csv"
     output_path = os.path.join(RESULTS_DIR, output_filename)
 
     # Save dataframe
@@ -93,8 +93,11 @@ def main():
         ]
     }
 
-    positive_label = config["positive_label"]
-    negative_label = config["negative_label"]
+    positive_label = config.get("positive_label")
+    negative_label = config.get("negative_label")
+    text_column = config["text_column"] if "text_column" in config else "text"
+    id_column = config["id_column"] if "id_column" in config else "id"
+    validation_column = config["validation_column"] if "validation_column" in config else None
 
     if args.batch_size is None:
         batch_size = config["batch_size"]
@@ -129,9 +132,17 @@ def main():
 
     # === Data loading ===
     try:
-        df = load_and_validate_data(dataset_path)
+        df_raw = load_and_validate_data(dataset_path)
+        df_raw['id'] = df_raw[id_column].astype(str)
+        df_raw['text'] = df_raw[text_column].astype(str)
+        if validation_column is not None:
+            df_raw['validation_label'] = df_raw[validation_column].astype(str)
+        df_raw["ai_label"] = ""  # Pre-fill output column 
+
+        df = df_raw[["id", "text", "ai_label"]].copy()
         print(f"✅ Dataset loaded successfully with path {dataset_path} and shape {df.shape}")
-        df["ai_label"] = ""  # Pre-fill output column 
+
+
     except DataLoaderError as e:
         print(f"❌ Data loading failed: {e}")
         
@@ -181,7 +192,11 @@ def main():
 
 
     # save to results folder:
-    save_results(df)
+    save_results(df,'annotated_data')
+
+    df_raw[["ai_label"]] = df[["ai_label"]]
+
+    save_results(df_raw,'full_annotated_data') 
 
 
 
