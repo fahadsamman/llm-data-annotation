@@ -10,3 +10,10 @@ conda env update -f environment.yml --prune
 
 ```
 
+## run code
+```bash
+python run.py --data {}
+
+python -m src.main --data data/sample_data.csv```
+
+```
