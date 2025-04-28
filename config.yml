@@ -1,0 +1,18 @@
+
+positive_label: "yes"
+negative_label: "no"
+batch_size: 10
+dataset_path: "data/sample_data.csv"
+
+#results_dir: results
+#base_filename: annotated_data
+
+llm_config:
+  timeout: 60
+  seed: 42
+  model: deepseek-chat
+  base_url: https://api.deepseek.com
+  price:
+    - 0.00027
+    - 0.00110
+
