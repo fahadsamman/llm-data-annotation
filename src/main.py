@@ -15,7 +15,8 @@ def load_config(path="config.yml"):
     with open(path, "r") as f:
         return yaml.safe_load(f)
     
-def generate_system_prompt(batch_size, positive_label="yes", negative_label="no"):
+def generate_system_prompt(batch_size, positive_label, negative_label):
+    
     return f"""
 You are a data annotator.
 
@@ -36,7 +37,6 @@ Only output '{positive_label}' or '{negative_label}' for each row, in the same o
 NO numbers.
 NO extra text.
 """.strip()
-
 
 def save_results(df, base_filename="annotated_data"):
     """Save dataframe to results/ folder with a datetime-stamped filename."""
@@ -73,8 +73,9 @@ def main():
     # === Get API key from environment variables ===
     load_dotenv()
     api_key = os.getenv("API_KEY")
-
-    print("API key found and loaded successfully.")
+    if not api_key:
+        raise ValueError("API_KEY not found in environment variables.")
+    print("✅ API key loaded successfully.")
 
     # === Get API keys from environment variables ===
     config = load_config()
@@ -100,10 +101,19 @@ def main():
     else:
         batch_size = args.batch_size
 
+    ## get dataset path from config file but allow CLI override:
     if args.data is None:
-        dataset_path = config["dataset_path"]
+        dataset_path = config["dataset_path"] 
+    elif args.data is not None:
+        dataset_path = args.data 
     else:
-        dataset_path = args.data
+        raise ValueError("No dataset path specified in config or CLI args.")
+
+    ## if rows_to_label is specified, only select the first rows_to_label rows:
+    try:
+        rows_to_label = config["rows_to_label"] 
+    except KeyError:
+        rows_to_label = None
 
     #results_dir = config["defaults"]["results_dir"]
     #base_filename = config["defaults"]["base_filename"]
@@ -114,18 +124,21 @@ def main():
         negative_label=negative_label
         )
     
-    print("Config loaded successfully.")
+    print("✅ Config loaded successfully.")
 
 
     # === Data loading ===
     try:
         df = load_and_validate_data(dataset_path)
-        print(f"Dataset loaded successfully with path {args.data}")
+        print(f"✅ Dataset loaded successfully with path {dataset_path} and shape {df.shape}")
         df["ai_label"] = ""  # Pre-fill output column 
-        print(f"Dataset loaded successfully with shape {df.shape}")
     except DataLoaderError as e:
-        print(f"Data loading failed: {e}")
-
+        print(f"❌ Data loading failed: {e}")
+        
+    
+    ## if rows_to_label is specified, only select the first rows_to_label rows:
+    if rows_to_label is not None:
+        df = df.head(rows_to_label)
 
 
     # === Agents ===

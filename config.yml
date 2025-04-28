@@ -3,6 +3,7 @@ positive_label: "yes"
 negative_label: "no"
 batch_size: 10
 dataset_path: "data/sample_data.csv"
+rows_to_label: 10 ## optional, if not specified, all rows will be labeled
 
 #results_dir: results
 #base_filename: annotated_data
