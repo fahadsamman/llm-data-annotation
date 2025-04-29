@@ -66,6 +66,50 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, help="Batch size for processing (default: 10)")
     return parser.parse_args()
 
+# === Retry any errors
+def retry_failed_rows(df, assistant, config, retry_batch_sizes=[20, 10, 1]):
+    """Retries failed rows with progressively smaller batch sizes."""
+    
+    for retry_batch_size in retry_batch_sizes:
+        error_df = df[df["ai_label"] == "error"].copy()
+        if error_df.empty:
+            print(f"✅ No errors left to retry at batch size {retry_batch_size}.")
+            break
+
+        print(f"❗ {len(error_df)} rows failed. Retrying with batch size {retry_batch_size}...")
+
+        # Shuffle failed rows
+        error_df = error_df.sample(frac=1).reset_index(drop=True)
+        error_df["ai_label"] = ""
+
+        # Regenerate prompt for new batch size
+        system_prompt = generate_system_prompt(
+            batch_size=retry_batch_size,
+            positive_label=config.get("positive_label"),
+            negative_label=config.get("negative_label"),
+            role_context_prompt=config.get("role_context_prompt"),
+            examples_prompt=config.get("examples_prompt"),
+            positive_label_desc_prompt=config.get("positive_label_desc_prompt"),
+            negative_label_desc_prompt=config.get("negative_label_desc_prompt")
+        )
+
+        retry_agent = HeadlessBatchAgent(
+            name=f"retry_batch_controller_{retry_batch_size}",
+            df=error_df,
+            batch_size=retry_batch_size,
+            system_prompt=system_prompt,
+            code_execution_config={"use_docker": False}
+        )
+
+        retry_df = retry_agent.run_batches(assistant)
+
+        # Safe ID-based update
+        df = df.set_index("id")
+        retry_df = retry_df.set_index("id")
+        df.update(retry_df)
+        df = df.reset_index()
+
+    return df
 
 def main():
 
@@ -193,14 +237,27 @@ def main():
 
     #manager = GroupChatManager(groupchat=groupchat, llm_config=config["llm_config"])
 
-    # Run the full pipeline:
-    batch_agent.run_batches(surplus_assessor)
+    # === Main Run ===
+    df = batch_agent.run_batches(surplus_assessor)
+
+
+    # === Error Run ===
+    # === Retry any errors in progressive batch sizes
+    df = retry_failed_rows(
+        df,
+        assistant=surplus_assessor,
+        config=config,
+        retry_batch_sizes=[50, 20, 10, 1]
+    )
+
 
 
     # save to results folder:
     save_results(df,'annotated_data')
 
-    df_raw[["ai_label"]] = df[["ai_label"]]
+    #df_raw[["ai_label"]] = df[["ai_label"]]
+    df_raw.update(df)
+    df_raw = df_raw.reset_index()
 
     save_results(df_raw,'full_annotated_data') 
 

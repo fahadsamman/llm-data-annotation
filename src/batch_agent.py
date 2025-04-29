@@ -59,3 +59,5 @@ class HeadlessBatchAgent(UserProxyAgent):
                     else:
                         print(f"❌ Final failure at rows {index_list[0]} to {index_list[-1]}: {e}")
                         self.store_labels(index_list, ["error"] * len(index_list))
+
+        return self.df
