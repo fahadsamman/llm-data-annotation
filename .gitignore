@@ -6,6 +6,9 @@ __pycache__/
 # Ignore all files inside results
 results/*
 
+# MacOS
+.DS_Store
+
 # config
 config.yml
 

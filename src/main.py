@@ -182,9 +182,9 @@ def main():
 
     # === Data loading ===
     try:
-        df_raw = load_and_validate_data(dataset_path)
-        df_raw['id'] = df_raw[id_column].astype(str)
-        df_raw['text'] = df_raw[text_column].astype(str)
+        df_raw = load_and_validate_data(dataset_path, id_column, text_column)
+        #df_raw['id'] = df_raw[id_column].astype(str)
+        #df_raw['text'] = df_raw[text_column].astype(str)
         if validation_column is not None:
             df_raw['validation_label'] = df_raw[validation_column].astype(str)
         df_raw["ai_label"] = ""  # Pre-fill output column 
