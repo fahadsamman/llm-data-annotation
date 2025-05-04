@@ -106,7 +106,12 @@ def retry_failed_rows(df, assistant, config, retry_batch_sizes=[20, 10, 1]):
         # Safe ID-based update
         df = df.set_index("id")
         retry_df = retry_df.set_index("id")
-        df.update(retry_df)
+
+        retry_df = retry_df[~retry_df.index.duplicated(keep='last')] # remove duplicates # should be done before running script, but in case, we dont want it to crash the script.
+        assert not retry_df.index.duplicated().any(), "retry_df has duplicate indices!" 
+
+        df.update(retry_df) # safely update df with retry_df after checking and fixing for duplicates.
+
         df = df.reset_index()
 
     return df
