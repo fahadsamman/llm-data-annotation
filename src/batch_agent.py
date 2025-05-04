@@ -33,31 +33,24 @@ class HeadlessBatchAgent(UserProxyAgent):
             index_list = batch_df.index.tolist()
             rows_text = "\n".join([f"{i+1}. {row}" for i, row in enumerate(input_rows)])
 
-            # === Try twice: once normally, then one retry on fail ===
-            for attempt in range(2):
-                try:
-                    reply = assistant.generate_reply(
-                        messages=[
-                            {"role": "system", "content": self.system_prompt},
-                            {"role": "user", "content": rows_text}
-                        ]
-                    )
-                    output = reply.strip().splitlines()
-                    #answers = [line.strip().lower() for line in output if line.strip()]
-                    answers = [line.strip().lower() for line in output]
+            try:
+                reply = assistant.generate_reply(
+                    messages=[
+                        {"role": "system", "content": self.system_prompt},
+                        {"role": "user", "content": rows_text}
+                    ]
+                )
+                output = reply.strip().splitlines()
+                answers = [line.strip().lower() for line in output]
 
-                    if len(answers) != len(index_list):
-                        raise ValueError(f"Mismatch in length: expected {len(index_list)}, got {len(answers)}")
+                if len(answers) != len(index_list):
+                    raise ValueError(f"Mismatch in length: expected {len(index_list)}, got {len(answers)}")
 
-                    self.store_labels(index_list, answers)
-                    print(f"✅ Processed rows {index_list[0]} to {index_list[-1]} (attempt {attempt + 1})")
-                    break  # success, exit retry loop
-
-                except Exception as e:
-                    if attempt == 0:
-                        print(f"⚠️ Retry batch at rows {index_list[0]} to {index_list[-1]} due to: {e}")
-                    else:
-                        print(f"❌ Final failure at rows {index_list[0]} to {index_list[-1]}: {e}")
-                        self.store_labels(index_list, ["error"] * len(index_list))
+                self.store_labels(index_list, answers)
+                print(f"✅ Processed rows {index_list[0]} to {index_list[-1]}")
+            
+            except Exception as e:
+                print(f"❌ Failed to process rows {index_list[0]} to {index_list[-1]}: {e}")
+                self.store_labels(index_list, ["error"] * len(index_list))
 
         return self.df
